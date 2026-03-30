@@ -1,0 +1,25 @@
+{
+    "name": "PeterSerialTerminal",
+    "version": "1.1.4",
+    "keywords": "arduino, library, serial, terminal, ascii, commands, arguments, command-line, parser, build scripts, documentation, examples",
+    "description": "Universal Serial Terminal library for Arduino to parse ASCII commands and arguments.",
+    "homepage": "https://github.com/Peter/PeterSerialTerminal",
+    "license": "MIT",
+    "authors": {
+        "name": "Peter",
+        "url": "https://github.com/Peter",
+        "maintainer": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Peter/PeterSerialTerminal.git",
+        "branch": "master"
+    },
+    "frameworks": "arduino",
+    "platforms": [
+        "atmelavr",
+        "atmelsam",
+        "espressif8266",
+        "espressif32"
+    ]
+}
