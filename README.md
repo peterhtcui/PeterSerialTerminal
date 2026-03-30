@@ -2,7 +2,7 @@
 
 An enhanced serial terminal library for Arduino based on [ErriezSerialTerminal](https://github.com/Erriez/ErriezSerialTerminal), featuring command history, tab completion, larger buffers, and a modern interactive command-line experience.
 
-![Serial Terminal](https://raw.githubusercontent.com/Peter/PeterSerialTerminal/master/extras/ScreenshotSerialTerminal.png)
+![Demo](extras/demo.gif)
 
 
 ## What's New

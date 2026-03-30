@@ -2,7 +2,7 @@
 
 基于 [ErriezSerialTerminal](https://github.com/Erriez/ErriezSerialTerminal) 的增强版 Arduino 串口终端库，新增命令历史记录、Tab 自动补全、更大缓冲区和现代化的交互式命令行体验。
 
-![Serial Terminal](https://raw.githubusercontent.com/Peter/PeterSerialTerminal/master/extras/ScreenshotSerialTerminal.png)
+![演示](extras/demo.gif)
 
 
 ## 新增特性
