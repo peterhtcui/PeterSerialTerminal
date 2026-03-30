@@ -30,8 +30,8 @@
  *      Documentation:  https://peterhtcui.github.io/PeterSerialTerminal
  */
 
-#ifndef ERRIEZ_SERIAL_TERMINAL_H_
-#define ERRIEZ_SERIAL_TERMINAL_H_
+#ifndef PETER_SERIAL_TERMINAL_H_
+#define PETER_SERIAL_TERMINAL_H_
 
 #include <Arduino.h>
 #include <string.h>
@@ -125,4 +125,4 @@ private:
     void findMatchingCommands(const char *partial, char matches[][ST_NUM_COMMAND_CHARS + 1], int *matchCount);
 };
 
-#endif // ERRIEZ_SERIAL_TERMINAL_H_
+#endif // PETER_SERIAL_TERMINAL_H_
