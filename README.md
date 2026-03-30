@@ -1,241 +1,216 @@
-# Serial Terminal library for Arduino
+# PeterSerialTerminal - Enhanced Serial Terminal Library for Arduino
 
-This is a universal Serial Terminal library for Arduino to parse ASCII commands and arguments.
+An enhanced serial terminal library for Arduino based on [ErriezSerialTerminal](https://github.com/Erriez/ErriezSerialTerminal), featuring command history, tab completion, larger buffers, and a modern interactive command-line experience.
 
 ![Serial Terminal](https://raw.githubusercontent.com/Peter/PeterSerialTerminal/master/extras/ScreenshotSerialTerminal.png)
 
 
-## Hardware
+## What's New
 
-Any Arduino hardware with a serial port, such as:
+This enhanced version transforms your Arduino serial terminal into a modern, user-friendly command interface:
 
-Arduino:
-* UNO
-* Nano
-* Micro
-* Pro or Pro Mini
-* Mega or Mega2560
-* Leonardo
+| Feature | ErriezSerialTerminal | PeterSerialTerminal |
+|---|---|---|
+| Receive buffer size | 32 bytes | **256 bytes** |
+| Max command length | 8 characters | **12 characters** |
+| Command history | No | **Yes (up to 20 entries)** |
+| Arrow key navigation | No | **Yes (Up/Down)** |
+| Tab completion | No | **Yes** |
+| History management API | No | **Yes** |
+| Backspace handling | Basic | **Enhanced (BS + DEL)** |
+| Line editing & cursor control | No | **Yes** |
+| Backward compatible | - | **100%** |
 
-Other targets:
-* DUE
-* ESP8266
-* ESP32
-* SAMD21
-* STM32F1
+### Command History
+
+Navigate through previously entered commands using arrow keys:
+- **Up Arrow (↑)**: Recall previous command
+- **Down Arrow (↓)**: Move to next command in history
+
+Up to 20 commands are stored (128 bytes each). Duplicate consecutive commands are automatically skipped.
+
+### Tab Completion
+
+Press **Tab** to auto-complete commands:
+- **Single match**: The command is completed automatically
+- **Multiple matches**: All matching commands are displayed
+- **No match**: A bell character is sent to the terminal
+
+### Enhanced Terminal Editing
+
+- Improved **backspace** support (handles both `^H` and `DEL` / ASCII 127)
+- Automatic **character echoing** for terminal programs like PuTTY
+- **Line clearing** and **cursor control** for seamless editing
+- **Post-command handler** for custom prompts (e.g., `> `)
+
+### Built-in History Management
+
+Programmatic control over command history:
+
+```c++
+term.showHistory();   // Display all stored commands
+term.clearHistory();  // Clear the history buffer
+term.addToHistory("command"); // Manually add a command to history
+```
 
 
-## Examples
+## Supported Hardware
 
-Arduino IDE | Examples | Peter Serial Terminal |
+**Arduino:**
+- UNO, Nano, Micro
+- Pro / Pro Mini
+- Mega / Mega2560
+- Leonardo
 
-* [PeterSerialTerminal](https://github.com/Peter/PeterSerialTerminal/blob/master/examples/PeterSerialTerminal/PeterSerialTerminal.ino)
+**Other platforms:**
+- Arduino DUE
+- ESP8266 / ESP32
+- SAMD21
+- STM32F1
 
 
-## Documentation
+## Quick Start
 
-- [Online HTML](https://peterhtcui.github.io/PeterSerialTerminal)
-- [Download PDF](https://github.com/Peter/PeterSerialTerminal/raw/master/PeterSerialTerminal.pdf)
+### Installation
 
+1. Download or clone this repository
+2. Copy the folder to your Arduino libraries directory
+3. Restart the Arduino IDE
 
-## Usage
-
-**Initialization**
-
-Create a Serial Terminal object. This can be initialized with optional newline and delimiter characters.
-
-Default newline character: ```'\n'```
-Default delimiter character: ```Space```
+### Basic Example
 
 ```c++
 #include <PeterSerialTerminal.h>
 
-// Newline character '\r' or '\n'
-char newlineChar = '\n'; 
-// Separator character between commands and arguments
-char delimiterChar = ' ';
-
-// Create serial terminal object
-SerialTerminal term(newlineChar, delimiterChar);
-
+SerialTerminal term('\r', ' ');
 
 void setup()
 {
-    // Initialize serial port
     Serial.begin(115200);
-    
-    // Initialize the built-in LED
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);
-}
-```
-**Register new commands**
 
-Commands must be registered at startup with a corresponding ```callback handler``` .  This registers the command only, excluding arguments.
+    term.setSerialEcho(true);
+    term.setDefaultHandler(unknownCommand);
+    term.setPostCommandHandler(printPrompt);
 
-The callback handler will be called when the command has been received including the newline character.
-
-An example of registering multiple commands:
-
-```c++
-void setup()
-{
-    ...
-
-    // Add command callback handlers
-    term.addCommand("?", cmdHelp);
     term.addCommand("help", cmdHelp);
     term.addCommand("on", cmdLedOn);
     term.addCommand("off", cmdLedOff);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+    Serial.println(F("Type 'help' for usage."));
+    printPrompt();
+}
+
+void loop()
+{
+    term.readSerial();
+}
+
+void printPrompt()
+{
+    Serial.print(F("> "));
+}
+
+void unknownCommand(const char *command)
+{
+    Serial.print(F("Unknown command: "));
+    Serial.println(command);
 }
 
 void cmdHelp()
 {
-    // Print usage
-    Serial.println(F("Serial terminal usage:"));
-    Serial.println(F("  help or ?          Print this usage"));
-    Serial.println(F("  on                 Turn LED on"));
-    Serial.println(F("  off                Turn LED off"));
+    Serial.println(F("Commands: help, on, off"));
 }
 
 void cmdLedOn()
 {
-    // Turn LED on
     Serial.println(F("LED on"));
     digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void cmdLedOff()
 {
-    // Turn LED off
     Serial.println(F("LED off"));
     digitalWrite(LED_BUILTIN, LOW);
 }
 ```
 
-**Set default handler**
 
-Optional: The default handler will be called when the command is not recognized.
+## API Reference
+
+### Constructor
 
 ```c++
-void setup()
-{   
-    ...
-
-    // Set default handler for unknown commands
-    term.setDefaultHandler(unknownCommand);
-}
-
-void unknownCommand(const char *command)
-{
-    // Print unknown command
-    Serial.print(F("Unknown command: "));
-    Serial.println(command);
-}
+SerialTerminal term(newlineChar, delimiterChar);
 ```
 
-**Read from serial port**
+| Parameter | Default | Description |
+|---|---|---|
+| `newlineChar` | `'\n'` | Newline character (`'\r'` or `'\n'`) |
+| `delimiterChar` | `' '` | Separator between command and arguments |
 
-Read from the serial port in the main loop:
+### Command Registration
 
 ```c++
-void loop()
-{
-    // Read from serial port and handle command callbacks
-    term.readSerial();
-}
+term.addCommand("cmd", callbackFunction);   // Register a command
+term.setDefaultHandler(unknownHandler);      // Handler for unrecognized commands
+term.setPostCommandHandler(promptFunction);  // Called after every command
 ```
 
-**Get next argument**
-
-Get pointer to next argument in serial receive buffer:
+### Serial I/O
 
 ```c++
-char *arg;
-
-// Get next argument
-arg = term.getNext();
-if (arg != NULL) {
-    Serial.print(F("Argument: "));
-    Serial.println(arg);
-} else {
-    Serial.println(F("No argument"));
-}
+term.readSerial();     // Process incoming serial data (call in loop())
+term.setSerialEcho(true);  // Enable character echoing
 ```
 
-**Get remaining characters**
-
-Get pointer to remaining characters in serial receive buffer:
+### Argument Parsing
 
 ```c++
-char *arg;
-
-// Get remaining characters
-arg = term.getRemaining();
-if (arg != NULL) {
-    Serial.print(F("Remaining: "));
-    Serial.println(arg);
-}
+char *arg = term.getNext();       // Get next space-delimited argument
+char *rest = term.getRemaining(); // Get all remaining characters
 ```
 
-**Clear buffer**
-
-Optional: The serial receive buffer can be cleared with the following call:
+### Buffer & History
 
 ```c++
-term.clearBuffer();
+term.clearBuffer();     // Clear the serial receive buffer
+term.showHistory();     // Print command history to Serial
+term.clearHistory();    // Clear all history entries
+term.addToHistory("cmd"); // Add a command to history manually
 ```
 
 
-**Enable/Disable Character Echoing**
+## Library Configuration
 
-Optional: Allow for any entered charecters to be printed back to the Serial interface.
-This is useful for terminal programs like PuTTY.
-Supports both backspace characters, ^H and ^127.
+The following macros in `PeterSerialTerminal.h` can be adjusted:
 
-```c++
-term.setSerialEcho(true); //Enable Character Echoing
-```
-
-
-**Set Post Command Handler**
-
-Optional: Add a function to be called AFTER a command has been handled.
-
-```c++
-void setup()
-{   
-    ...
-
-    // Set handler to be run AFTER a command has been handled.
-    term.setDefaultHandler(postCommandHandler);
-}
-
-void setPostCommandHandler()
-{
-    // Print '> ' for a primitive user UI
-    Serial.print(F("> "));
-}
-```
-
-## Library configuration
-
-```SerialTerminal.h``` contains the following configuration macro's:
-
-* ```ST_RX_BUFFER_SIZE``` : The default serial receive buffer size is 32 Bytes. This includes the command and arguments, excluding the ```'\0'``` character.
-* ```ST_NUM_COMMAND_CHARS```: The default number of command characters is 8 Bytes, excluding the ```'\0'``` character.
+| Macro | Default | Description |
+|---|---|---|
+| `ST_RX_BUFFER_SIZE` | 256 | Serial receive buffer size (bytes) |
+| `ST_NUM_COMMAND_CHARS` | 12 | Max characters per command name |
+| `ST_MAX_HISTORY_ENTRIES` | 20 | Max number of history entries |
+| `ST_HISTORY_ENTRY_SIZE` | 128 | Max length per history entry (bytes) |
 
 
-## Library dependencies
+## Examples
 
-* None.
-
-
-## Library installation
-
-Please refer to the [Wiki](https://github.com/Peter/PeterArduinoLibrariesAndSketches/wiki) page.
+| Example | Description |
+|---|---|
+| [ErriezSerialTerminal](examples/ErriezSerialTerminal/ErriezSerialTerminal.ino) | Basic usage with command registration and argument parsing |
+| [ErriezSerialTerminal_EchoAndCallback](examples/ErriezSerialTerminal_EchoAndCallback/ErriezSerialTerminal_EchoAndCallback.ino) | Character echoing, post-command handler, and interactive prompt |
 
 
-## Other Arduino Libraries and Sketches from Peter
+## Library Dependencies
 
-* [Peter Libraries and Sketches](https://github.com/Peter/PeterArduinoLibrariesAndSketches)
+None.
+
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
+
+
+## Acknowledgments
+
+This project is based on [ErriezSerialTerminal](https://github.com/Erriez/ErriezSerialTerminal) by Erriez. The original library provides an excellent, lightweight foundation for serial command parsing on Arduino. This enhanced version builds upon that solid foundation by adding command history, tab completion, extended buffers, and improved terminal editing — while maintaining full backward compatibility. Many thanks to the Erriez team for their outstanding work on the original library.
